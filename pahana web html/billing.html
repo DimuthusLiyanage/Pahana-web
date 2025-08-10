@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pahana Edu - Billing</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <h1>Pahana Edu</h1>
+        </div>
+        <div class="header-right">
+            <span id="welcomeUser"></span>
+            <button id="logoutBtn" class="btn">Logout</button>
+        </div>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="customers.html">Customer Management</a></li>
+            <li><a href="items.html">Item Management</a></li>
+            <li><a href="billing.html" class="active">Billing</a></li>
+            <li><a href="help.html">Help</a></li>
+        </ul>
+    </nav>
+    <main>
+        <div class="billing-container">
+            <div class="customer-selection">
+                <h3>Select Customer</h3>
+                <select id="customerSelect">
+                    <option value="">-- Select Customer --</option>
+                    <!-- Customers will be loaded here -->
+                </select>
+                <div id="customerInfo" class="customer-info">
+                    <!-- Customer details will be shown here -->
+                </div>
+            </div>
+            
+            <div class="bill-items">
+                <h3>Add Items to Bill</h3>
+                <div class="item-selection">
+                    <select id="itemSelect">
+                        <option value="">-- Select Item --</option>
+                        <!-- Items will be loaded here -->
+                    </select>
+                    <input type="number" id="itemQuantity" min="1" value="1" placeholder="Qty">
+                    <button id="addItemToBill" class="btn">Add to Bill</button>
+                </div>
+                
+                <table id="billItemsTable">
+                    <thead>
+                        <tr>
+                            <th>Item Code</th>
+                            <th>Description</th>
+                            <th>Qty</th>
+                            <th>Unit Price</th>
+                            <th>Total</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="billItemsBody">
+                        <!-- Bill items will be added here -->
+                    </tbody>
+                </table>
+                
+                <div class="bill-summary">
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Discount:</span>
+                        <input type="number" id="discount" min="0" max="100" value="0">%
+                        <span id="discountAmount">0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total:</span>
+                        <span id="totalAmount">0.00</span>
+                    </div>
+                </div>
+                
+                <div class="bill-actions">
+                    <button id="printBill" class="btn">Print Bill</button>
+                    <button id="clearBill" class="btn btn-secondary">Clear Bill</button>
+                    <button id="saveBill" class="btn">Save Bill</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="js/auth.js"></script>
+    <script src="js/billing.js"></script>
+</body>
+</html>

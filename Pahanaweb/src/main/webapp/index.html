@@ -1,10 +1,201 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>Start Page</title>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    </head>
-    <body>
-        <h1>Hello World!</h1>
-    </body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Billing System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Customer Billing System</h1>
+        <nav>
+            <ul>
+                <li><a href="#" class="active" data-section="dashboard">Dashboard</a></li>
+                <li><a href="#" data-section="customers">Customers</a></li>
+                <li><a href="#" data-section="bills">Bills</a></li>
+                <li><a href="#" data-section="items">Items</a></li>
+                <li><a href="#" data-section="users">Users</a></li>
+                <li><button id="logoutBtn">Logout</button></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="content-section active">
+            <h2>Dashboard</h2>
+            <div class="stats-container">
+                <div class="stat-card">
+                    <h3>Total Customers</h3>
+                    <p id="totalCustomers">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Pending Bills</h3>
+                    <p id="pendingBills">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Paid Bills</h3>
+                    <p id="paidBills">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Revenue</h3>
+                    <p id="totalRevenue">$0.00</p>
+                </div>
+            </div>
+            <div class="recent-activity">
+                <h3>Recent Activity</h3>
+                <div id="activityLog"></div>
+            </div>
+        </section>
+
+        <!-- Customers Section -->
+        <section id="customers" class="content-section">
+            <h2>Customer Management</h2>
+            <button id="addCustomerBtn" class="btn">Add New Customer</button>
+            <div class="search-container">
+                <input type="text" id="customerSearch" placeholder="Search customers...">
+                <button id="searchCustomerBtn" class="btn">Search</button>
+            </div>
+            <div id="customerList" class="data-table-container"></div>
+        </section>
+
+        <!-- Bills Section -->
+        <section id="bills" class="content-section">
+            <h2>Bill Management</h2>
+            <button id="generateBillBtn" class="btn">Generate New Bill</button>
+            <div class="filter-container">
+                <select id="billStatusFilter">
+                    <option value="all">All Bills</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="PAID">Paid</option>
+                </select>
+                <input type="text" id="billSearch" placeholder="Search by account number...">
+                <button id="searchBillBtn" class="btn">Search</button>
+            </div>
+            <div id="billList" class="data-table-container"></div>
+        </section>
+
+        <!-- Items Section -->
+        <section id="items" class="content-section">
+            <h2>Item Management</h2>
+            <button id="addItemBtn" class="btn">Add New Item</button>
+            <div class="search-container">
+                <input type="text" id="itemSearch" placeholder="Search items...">
+                <button id="searchItemBtn" class="btn">Search</button>
+            </div>
+            <div id="itemList" class="data-table-container"></div>
+        </section>
+
+        <!-- Users Section -->
+        <section id="users" class="content-section">
+            <h2>User Management</h2>
+            <button id="addUserBtn" class="btn">Add New User</button>
+            <div id="userList" class="data-table-container"></div>
+        </section>
+    </main>
+
+    <!-- Modal for forms -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/customers.js"></script>
+    <script src="js/bills.js"></script>
+    <script src="js/items.js"></script>
+    <script src="js/users.js"></script>
+    <script>
+        // Navigation between sections
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const section = link.getAttribute('data-section');
+                
+                // Update active state
+                document.querySelectorAll('nav a').forEach(navLink => {
+                    navLink.classList.remove('active');
+                });
+                link.classList.add('active');
+                
+                // Show the selected section
+                document.querySelectorAll('.content-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(section).classList.add('active');
+            });
+        });
+
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!localStorage.getItem('authToken')) {
+                window.location.href = 'login.html';
+            } else {
+                // Load initial data
+                loadDashboardStats();
+            }
+        });
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('authToken');
+            window.location.href = 'login.html';
+        });
+
+        // Modal functionality
+        const modal = document.getElementById('modal');
+        const closeBtn = document.querySelector('.close');
+
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        function openModal(content) {
+            document.getElementById('modalBody').innerHTML = content;
+            modal.style.display = 'block';
+        }
+
+        async function loadDashboardStats() {
+            try {
+                // Fetch customers count
+                const customersRes = await fetch('/customerapi/customers');
+                const customers = await customersRes.json();
+                document.getElementById('totalCustomers').textContent = customers.length;
+                
+                // Fetch bills
+                const billsRes = await fetch('/customerapi/bills');
+                const bills = await billsRes.json();
+                
+                const pending = bills.filter(bill => bill.paymentStatus === 'PENDING').length;
+                const paid = bills.filter(bill => bill.paymentStatus === 'PAID').length;
+                const revenue = bills.reduce((sum, bill) => sum + bill.amountDue, 0);
+                
+                document.getElementById('pendingBills').textContent = pending;
+                document.getElementById('paidBills').textContent = paid;
+                document.getElementById('totalRevenue').textContent = `$${revenue.toFixed(2)}`;
+                
+                // Recent activity (simplified)
+                const activity = bills.slice(0, 5).map(bill => 
+                    `<div class="activity-item">
+                        <span>Bill #${bill.billId} for ${bill.accountNumber}</span>
+                        <span>$${bill.amountDue.toFixed(2)} - ${bill.paymentStatus}</span>
+                    </div>`
+                ).join('');
+                document.getElementById('activityLog').innerHTML = activity;
+                
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
+            }
+        }
+    </script>
+</body>
 </html>
