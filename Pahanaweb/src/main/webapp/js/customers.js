@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8080/pahanaeduapi/api';
+const API_BASE_UR_CUS = 'http://localhost:8080/pahanaeduapi/api';
 
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('customerList')) {
@@ -16,12 +16,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadCustomers(searchTerm = '') {
     try {
-        let url = `${API_BASE_URL}/customers`;
+        let url = `${API_BASE_UR_CUS}/customers`;
         if (searchTerm) {
             url += `?search=${encodeURIComponent(searchTerm)}`;
         }
         
         const response = await fetch(url);
+        if (!response.ok) throw new Error('Network response was not ok');
         const customers = await response.json();
         
         const table = `
@@ -110,41 +111,41 @@ function showCustomerForm(customer = null) {
         };
         
         try {
-            let response;
+            let url, method;
             if (isEdit) {
-                response = await fetch(`${API_BASE_URL}/customers/${customerData.accountNumber}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(customerData)
-                });
+                url = `${API_BASE_UR_CUS}/customers/${encodeURIComponent(customerData.accountNumber)}`;
+                method = 'PUT';
             } else {
-                response = await fetch(`${API_BASE_URL}/customers`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(customerData)
-                });
+                url = `${API_BASE_UR_CUS}/customers`;
+                method = 'POST';
             }
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(customerData)
+            });
             
             if (response.ok) {
                 loadCustomers();
-                document.getElementById('modal').style.display = 'none';
+                closeModal();
             } else {
-                alert('Error saving customer. Please try again.');
+                const errorText = await response.text();
+                throw new Error(`Server error: ${errorText}`);
             }
         } catch (error) {
             console.error('Error saving customer:', error);
-            alert('Error saving customer. Please try again.');
+            alert(`Error saving customer: ${error.message}`);
         }
     });
 }
 
 function editCustomer(accountNumber) {
-    fetch(`${API_BASE_URL}/customers/${accountNumber}`)
-        .then(response => response.json())
+    fetch(`${API_BASE_UR_CUS}/customers/${encodeURIComponent(accountNumber)}`)
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
         .then(customer => showCustomerForm(customer))
         .catch(error => {
             console.error('Error fetching customer:', error);
@@ -154,14 +155,14 @@ function editCustomer(accountNumber) {
 
 function deleteCustomer(accountNumber) {
     if (confirm('Are you sure you want to delete this customer?')) {
-        fetch(`${API_BASE_URL}/customers/${accountNumber}`, {
+        fetch(`${API_BASE_UR_CUS}/customers/${encodeURIComponent(accountNumber)}`, {
             method: 'DELETE'
         })
         .then(response => {
             if (response.ok) {
                 loadCustomers();
             } else {
-                alert('Error deleting customer.');
+                throw new Error('Failed to delete customer');
             }
         })
         .catch(error => {
@@ -172,8 +173,18 @@ function deleteCustomer(accountNumber) {
 }
 
 function viewCustomerBills(accountNumber) {
-    // Switch to bills section and filter by this customer
     document.querySelector('nav a[data-section="bills"]').click();
     document.getElementById('billSearch').value = accountNumber;
     document.getElementById('searchBillBtn').click();
+}
+
+// Helper functions (if not already defined elsewhere)
+function openModal(content) {
+    const modal = document.getElementById('modal');
+    modal.innerHTML = content;
+    modal.style.display = 'block';
+}
+
+function closeModal() {
+    document.getElementById('modal').style.display = 'none';
 }
