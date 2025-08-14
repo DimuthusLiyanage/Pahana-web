@@ -3,13 +3,13 @@ const API_BASE_URL = 'http://localhost:8080/pahanaeduapi/api';
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('userList')) {
         // Only allow admin to manage users
-        if (localStorage.getItem('userRole') !== 'ADMIN') {
-            document.getElementById('users').innerHTML = `
-                <h2>Access Denied</h2>
-                <p>You don't have permission to access this section.</p>
-            `;
-            return;
-        }
+//        if (localStorage.getItem('userRole') !== 'ADMIN') {
+//            document.getElementById('users').innerHTML = `
+//                <h2>Access Denied</h2>
+//                <p>You don't have permission to access this section.</p>
+//            `;
+//            return;
+//        }
         
         loadUsers();
     }
