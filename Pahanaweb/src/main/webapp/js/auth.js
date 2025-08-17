@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8080/pahanaeduapi/api';
+//const API_BASE_URL = 'http://localhost:8080/pahanaeduapi/api';
 
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();

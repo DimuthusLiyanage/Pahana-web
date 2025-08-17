@@ -1,16 +1,15 @@
-const API_BASE_URL = 'http://localhost:8080/pahanaeduapi/api';
+//const API_BASE_URL2 = 'http://localhost:8080/pahanaeduapi/api';
+
+// Helper function for headers
+function getAuthHeaders() {
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + localStorage.getItem('authToken')
+    };
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('userList')) {
-        // Only allow admin to manage users
-//        if (localStorage.getItem('userRole') !== 'ADMIN') {
-//            document.getElementById('users').innerHTML = `
-//                <h2>Access Denied</h2>
-//                <p>You don't have permission to access this section.</p>
-//            `;
-//            return;
-//        }
-        
         loadUsers();
     }
     
@@ -21,7 +20,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadUsers() {
     try {
-        const response = await fetch(`${API_BASE_URL}/users`);
+        const response = await fetch(`${API_BASE_URL}/users`, {
+            headers: getAuthHeaders()
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const users = await response.json();
         
         const table = `
@@ -64,6 +70,7 @@ function showUserForm(user = null) {
     const form = `
         <h2>${isEdit ? 'Edit' : 'Add'} User</h2>
         <form id="userForm">
+            ${isEdit ? `<input type="hidden" id="userId" value="${user.userId}">` : ''}
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" value="${isEdit ? user.username : ''}" required>
@@ -89,36 +96,32 @@ function showUserForm(user = null) {
     document.getElementById('userForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        const userId = document.getElementById('userId')?.value;
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const role = document.getElementById('role').value;
+        
         const userData = {
-            username: document.getElementById('username').value,
-            role: document.getElementById('role').value
+            username,
+            role
         };
         
-        const password = document.getElementById('password').value;
         if (password) {
             userData.password = password;
-        }
-        
-        if (isEdit) {
-            userData.userId = user.userId;
         }
         
         try {
             let response;
             if (isEdit) {
-                response = await fetch(`${API_BASE_URL}/users/${user.userId}`, {
+                response = await fetch(`${API_BASE_URL}/users/${userId}`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify(userData)
                 });
             } else {
                 response = await fetch(`${API_BASE_URL}/users`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify(userData)
                 });
             }
@@ -127,7 +130,8 @@ function showUserForm(user = null) {
                 loadUsers();
                 document.getElementById('modal').style.display = 'none';
             } else {
-                alert('Error saving user. Please try again.');
+                const error = await response.text();
+                alert(`Error: ${error}`);
             }
         } catch (error) {
             console.error('Error saving user:', error);
@@ -137,19 +141,25 @@ function showUserForm(user = null) {
 }
 
 function editUser(userId) {
-    fetch(`${API_BASE_URL}/users/${userId}`)
-        .then(response => response.json())
-        .then(user => showUserForm(user))
-        .catch(error => {
-            console.error('Error fetching user:', error);
-            alert('Error loading user data.');
-        });
+    fetch(`${API_BASE_URL}/users/${userId}`, {
+        headers: getAuthHeaders()
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('User not found');
+        return response.json();
+    })
+    .then(user => showUserForm(user))
+    .catch(error => {
+        console.error('Error fetching user:', error);
+        alert('Error loading user data.');
+    });
 }
 
 function deleteUser(userId) {
     if (confirm('Are you sure you want to delete this user?')) {
         fetch(`${API_BASE_URL}/users/${userId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: getAuthHeaders()
         })
         .then(response => {
             if (response.ok) {

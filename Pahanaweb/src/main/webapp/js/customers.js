@@ -1,4 +1,4 @@
-const API_BASE_UR_CUS = 'http://localhost:8080/pahanaeduapi/api';
+//const API_BASE_UR_CUS = 'http://localhost:8080/pahanaeduapi/api';
 
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('customerList')) {
@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadCustomers(searchTerm = '') {
     try {
-        let url = `${API_BASE_UR_CUS}/customers`;
+        let url = `${API_BASE_URL}/customers`;
         if (searchTerm) {
             url += `?search=${encodeURIComponent(searchTerm)}`;
         }
@@ -113,10 +113,10 @@ function showCustomerForm(customer = null) {
         try {
             let url, method;
             if (isEdit) {
-                url = `${API_BASE_UR_CUS}/customers/${encodeURIComponent(customerData.accountNumber)}`;
+                url = `${API_BASE_URL}/customers/${encodeURIComponent(customerData.accountNumber)}`;
                 method = 'PUT';
             } else {
-                url = `${API_BASE_UR_CUS}/customers`;
+                url = `${API_BASE_URL}/customers`;
                 method = 'POST';
             }
             
@@ -141,7 +141,7 @@ function showCustomerForm(customer = null) {
 }
 
 function editCustomer(accountNumber) {
-    fetch(`${API_BASE_UR_CUS}/customers/${encodeURIComponent(accountNumber)}`)
+    fetch(`${API_BASE_URL}/customers/${encodeURIComponent(accountNumber)}`)
         .then(response => {
             if (!response.ok) throw new Error('Network response was not ok');
             return response.json();
@@ -155,7 +155,7 @@ function editCustomer(accountNumber) {
 
 function deleteCustomer(accountNumber) {
     if (confirm('Are you sure you want to delete this customer?')) {
-        fetch(`${API_BASE_UR_CUS}/customers/${encodeURIComponent(accountNumber)}`, {
+        fetch(`${API_BASE_URL}/customers/${encodeURIComponent(accountNumber)}`, {
             method: 'DELETE'
         })
         .then(response => {
