@@ -1,4 +1,4 @@
-//const API_BASE_URL = 'http://localhost:8080/pahanaeduapi/api';
+const API_BASE_URL_auth = 'http://localhost:8080/pahanaeduapi/api';
 
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -8,7 +8,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     const errorElement = document.getElementById('loginError');
 
     try {
-        const response = await fetch(`${API_BASE_URL}/users/login`, {
+        const response = await fetch(`${API_BASE_URL_auth}/users/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
